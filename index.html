@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Task Manager with Reminder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+      transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+    }
+    body {
+      margin: 0;
+      background: linear-gradient(to right, #5b96d2, rgb(5, 17, 43));
+      padding: 20px;
+      color: #333;
+      min-height: 100vh;
+    }
+    body.dark-mode {
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #f0f0f0;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    body.dark-mode .container {
+      background: rgba(30, 30, 30, 0.85);
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2a5298;
+    }
+    body.dark-mode h2 {
+      color: #4a8eff;
+    }
+    .clock {
+      text-align: center;
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+    input[type="text"], input[type="time"] {
+      padding: 10px;
+      margin: 5px 0;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: white;
+    }
+    body.dark-mode input[type="text"],
+    body.dark-mode input[type="time"] {
+      background-color: #444;
+      color: #f0f0f0;
+      border-color: #555;
+    }
+    button {
+      background-color: #2a5298;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      margin-top: 10px;
+      width: 100%;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #1c3d73;
+    }
+    body.dark-mode button {
+      background-color: #3a6ea5;
+    }
+    body.dark-mode button:hover {
+      background-color: #2a5d95;
+    }
+    .task {
+      background: #f1f1f1;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    body.dark-mode .task {
+      background: #333;
+    }
+    .task.completed {
+      text-decoration: line-through;
+      color: gray;
+    }
+    body.dark-mode .task.completed {
+      color: #aaa;
+    }
+    .note {
+      font-size: 12px;
+      color: #555;
+      margin-top: 5px;
+      text-align: center;
+    }
+    body.dark-mode .note {
+      color: #aaa;
+    }
+    .task-number {
+      background-color: #2a5298;
+      color: white;
+      border-radius: 50%;
+      width: 25px;
+      height: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      font-size: 12px;
+    }
+    body.dark-mode .task-number {
+      background-color: #3a6ea5;
+    }
+    .task-content {
+      display: flex;
+      align-items: center;
+      flex-grow: 1;
+    }
+    .task-actions {
+      display: flex;
+      gap: 5px;
+    }
+    .task-actions button {
+      width: auto;
+      padding: 5px 10px;
+      margin: 0;
+    }
+
+    /* Theme Toggle Styles */
+    .theme-toggle-container {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 15px;
+    }
+    .theme-toggle {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 30px;
+    }
+    .theme-toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "☀️";
+      height: 22px;
+      width: 22px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+    input:checked + .slider {
+      background-color: #2a5298;
+    }
+    input:checked + .slider:before {
+      content: "🌙";
+      transform: translateX(30px);
+    }
+    body.dark-mode input:checked + .slider {
+      background-color: #3a6ea5;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="theme-toggle-container">
+    <label class="theme-toggle">
+      <input type="checkbox" id="themeToggle">
+      <span class="slider"></span>
+    </label>
+  </div>
+  
+  <h2>🗂️ Task Manager</h2>
+  <div class="clock" id="clock">--:--:--</div>
+  
+  <input type="text" id="taskInput" placeholder="Enter your task..." />
+  <input type="time" id="reminderTime" />
+  <button onclick="addTask()">Add Task</button>
+  <p class="note">🔔 Note: Keep this tab open. You will get a sound alert if a task is due.</p>
+
+  <div id="taskList"></div>
+</div>
+
+<audio id="reminderSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
+
+<script>
+  const taskList = document.getElementById('taskList');
+  const reminderSound = document.getElementById('reminderSound');
+  const themeToggle = document.getElementById('themeToggle');
+
+  // Load tasks from localStorage if available
+  let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+  let nextTaskNumber = tasks.length > 0 ? Math.max(...tasks.map(t => t.number)) + 1 : 1;
+
+  // Check for saved theme preference or use preferred color scheme
+  const savedTheme = localStorage.getItem('theme') || 
+                   (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+  // Apply the saved theme
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark-mode');
+    themeToggle.checked = true;
+  }
+
+  // Theme toggle event listener
+  themeToggle.addEventListener('change', function() {
+    if (this.checked) {
+      document.body.classList.add('dark-mode');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.body.classList.remove('dark-mode');
+      localStorage.setItem('theme', 'light');
+    }
+  });
+
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent = now.toLocaleTimeString();
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  function addTask() {
+    const text = document.getElementById('taskInput').value.trim();
+    const time = document.getElementById('reminderTime').value;
+
+    if (!text) return alert('Please enter a task.');
+
+    const task = { 
+      text, 
+      time, 
+      completed: false,
+      number: nextTaskNumber++,
+      createdAt: new Date().toISOString()
+    };
+    tasks.push(task);
+    saveTasks();
+    renderTasks();
+    document.getElementById('taskInput').value = '';
+    document.getElementById('reminderTime').value = '';
+  }
+
+  function toggleComplete(index) {
+    tasks[index].completed = !tasks[index].completed;
+    saveTasks();
+    renderTasks();
+  }
+
+  function deleteTask(index) {
+    tasks.splice(index, 1);
+    saveTasks();
+    renderTasks();
+    // Don't decrement nextTaskNumber to maintain unique numbering
+  }
+
+  function saveTasks() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
+
+  function renderTasks() {
+    taskList.innerHTML = '';
+    // Sort tasks by creation date (newest first) but you can change this
+    const sortedTasks = [...tasks].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    sortedTasks.forEach((task, i) => {
+      const div = document.createElement('div');
+      div.className = `task ${task.completed ? 'completed' : ''}`;
+      div.innerHTML = `
+        <div class="task-content">
+          <div class="task-number">${task.number}</div>
+          <div>
+            <strong>${task.text}</strong><br>
+            ${task.time ? `<small>⏰ ${task.time}</small>` : ''}
+          </div>
+        </div>
+        <div class="task-actions">
+          <button onclick="toggleComplete(${tasks.indexOf(task)})" title="Mark as ${task.completed ? 'incomplete' : 'complete'}">
+            ${task.completed ? '↩' : '✔'}
+          </button>
+          <button onclick="deleteTask(${tasks.indexOf(task)})" title="Delete task">✖</button>
+        </div>
+      `;
+      taskList.appendChild(div);
+    });
+  }
+
+  setInterval(() => {
+    const now = new Date();
+    const currentTime = now.toTimeString().slice(0, 5); // HH:MM
+    tasks.forEach((task, i) => {
+      if (!task.completed && task.time === currentTime) {
+        alert(`⏰ Reminder (Task #${task.number}): ${task.text}`);
+        reminderSound.play();
+        task.completed = true;
+        saveTasks();
+        renderTasks();
+      }
+    });
+  }, 60000); // every minute
+
+  // Initial render
+  renderTasks();
+</script>
+
+</body>
+</html>
